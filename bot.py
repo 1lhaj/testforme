@@ -24,46 +24,29 @@ def create_account():
     driver.get("https://ar.secure.imvu.com/welcome/ftux/account/")  # رابط التسجيل
     time.sleep(5)  # انتظر 5 ثوانٍ للتأكد من تحميل الصفحة بالكامل
 
-    # الانتظار حتى يظهر العنصر
-    try:
-        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, "signup_displayname_input")))
-    except:
-        print("لم يتم العثور على العنصر بعد 30 ثانية.")
-        driver.quit()
-        return
-
+    # تعبئة الحقول
     username = fake.user_name()
     email = fake.email()
     password = "password123"
     birthdate = fake.date_of_birth(minimum_age=18, maximum_age=99)  # العمر أكبر من 18 سنة
     formatted_birthdate = birthdate.strftime("%Y-%m-%d")  # تنسيق التاريخ كما هو مطلوب (yyyy-mm-dd)
 
-    # تعبئة الحقول
     driver.find_element(By.CLASS_NAME, "signup_displayname_input").send_keys(username)  # استخدام الصنف
     driver.find_element(By.NAME, "signup_email").send_keys(email)    # استبدل "email" باسم الحقل
     driver.find_element(By.NAME, "signup_password").send_keys(password)  # كلمة السر
 
-    # الانتظار والتأكد من وجود حقل إعادة إدخال كلمة المرور
-    try:
-        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.NAME, "confirm_password")))  # تأكد من وجود حقل إعادة إدخال كلمة السر
-        driver.find_element(By.NAME, "confirm_password").send_keys(password)  # إعادة إدخال كلمة المرور
-    except:
-        print("لم يتم العثور على حقل إعادة إدخال كلمة المرور.")
-        driver.quit()
-        return
+    # تأكد من وجود حقل إعادة إدخال كلمة المرور
+    WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.NAME, "confirm_password")))  
+    driver.find_element(By.NAME, "confirm_password").send_keys(password)  # إعادة إدخال كلمة المرور
 
     # إدخال تاريخ الميلاد باستخدام XPath
-    try:
-        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, "//input[@class='date-picker-input']")))
-        driver.find_element(By.XPATH, "//input[@class='date-picker-input']").send_keys(formatted_birthdate)  # إدخال تاريخ الميلاد
-    except:
-        print("لم يتم العثور على حقل تاريخ الميلاد.")
-        driver.quit()
-        return
+    WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, "//input[@class='date-picker-input']")))
+    driver.find_element(By.XPATH, "//input[@class='date-picker-input']").send_keys(formatted_birthdate)  # إدخال تاريخ الميلاد
 
-    # إرسال النموذج
-    driver.find_element(By.NAME, "signup_submit_button").click()  # استبدل "signup_submit_button" بزر الإرسال الصحيح
-    time.sleep(5)
+    # تأكد من أن الزر جاهز للنقر عليه
+    WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.ID, "registration-submit"))).click()  # انقر على زر التسجيل
+
+    time.sleep(5)  # انتظر قليلاً بعد الإرسال
 
     # حفظ البيانات في ملف CSV
     with open("accounts.csv", "a", newline="") as file:
