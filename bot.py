@@ -87,45 +87,20 @@ def create_account():
         WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.NAME, "login_email"))).send_keys(email)
         WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.NAME, "login_password"))).send_keys(password)
         WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.NAME, "login_button"))).click()
-        print(f"تم تسجيل الدخول بنجاح باستخدام الحساب {username}.")
+
+        # تحقق من تسجيل الدخول
+        time.sleep(3)
+        logged_in = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "user-profile")))
+        if logged_in:
+            print(f"تم تسجيل الدخول بنجاح باستخدام الحساب {username}.")
+        else:
+            print("فشل تسجيل الدخول.")
 
     except Exception as e:
         print(f"حدث خطأ أثناء إنشاء الحساب: {e}")
 
-def follow_account(target_username):
-    try:
-        with open("accounts.csv", "r") as file:
-            accounts = csv.reader(file)
-            for account in accounts:
-                username, email, password, display_name, birthdate = account
-
-                # تسجيل الدخول
-                WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.NAME, "login_email"))).send_keys(email)
-                WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.NAME, "login_password"))).send_keys(password)
-                WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.NAME, "login_button"))).click()
-                time.sleep(3)
-
-                # متابعة الحساب
-                driver.get(f"https://www.imvu.com/next/av/{target_username}/")
-                follow_button = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, "follow_button")))
-
-                # تمرير الصفحة إلى الزر إذا كان مغطى
-                driver.execute_script("arguments[0].scrollIntoView();", follow_button)
-                time.sleep(1)  # الانتظار قليلاً بعد التمرير
-
-                follow_button.click()
-                print(f"تمت متابعة الحساب: {target_username}")
-
-                # تسجيل الخروج
-                driver.get("https://secure.imvu.com/welcome/logout/")
-                print(f"تم تسجيل الخروج من الحساب: {email}")
-
-    except Exception as e:
-        print(f"حدث خطأ أثناء متابعة الحساب: {e}")
-
 # تشغيل الكود
 create_account()
-follow_account("Joseph583531")
 
 # إغلاق المتصفح بعد الانتهاء
 driver.quit()
