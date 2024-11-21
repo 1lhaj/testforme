@@ -26,9 +26,9 @@ def create_account():
 
     # الانتظار حتى يظهر العنصر
     try:
-        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.NAME, "signup_birthday")))
+        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, "signup_displayname_input")))
     except:
-        print("لم يتم العثور على حقل تاريخ الميلاد بعد 30 ثانية.")
+        print("لم يتم العثور على العنصر بعد 30 ثانية.")
         driver.quit()
         return
 
@@ -36,17 +36,19 @@ def create_account():
     email = fake.email()
     password = "password123"
     birthdate = fake.date_of_birth(minimum_age=18, maximum_age=99)  # العمر أكبر من 18 سنة
-    formatted_birthdate = birthdate.strftime("%m/%d/%Y")  # تنسيق التاريخ كما هو مطلوب (mm/dd/yyyy)
+    formatted_birthdate = birthdate.strftime("%Y-%m-%d")  # تنسيق التاريخ كما هو مطلوب (yyyy-mm-dd)
 
     # تعبئة الحقول
     driver.find_element(By.CLASS_NAME, "signup_displayname_input").send_keys(username)  # استخدام الصنف
     driver.find_element(By.NAME, "signup_email").send_keys(email)    # استبدل "email" باسم الحقل
     driver.find_element(By.NAME, "signup_password").send_keys(password)  # استبدل "password" باسم الحقل
 
-    # إعادة إدخال كلمة المرور باستخدام XPath
-    driver.find_element(By.XPATH, "//input[@name='confirm_password']").send_keys(password)  # إعادة إدخال كلمة المرور (تحديث الحقل)
+    # إعادة إدخال كلمة المرور باستخدام XPATH
+    driver.find_element(By.XPATH, "//input[@name='signup_reenter_password']").send_keys(password)  # إعادة إدخال كلمة المرور
 
-    driver.find_element(By.NAME, "signup_birthday").send_keys(formatted_birthdate)  # إدخال تاريخ الميلاد
+    # إدخال تاريخ الميلاد باستخدام XPath
+    WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, "//input[@class='date-picker-input']")))
+    driver.find_element(By.XPATH, "//input[@class='date-picker-input']").send_keys(formatted_birthdate)  # إدخال تاريخ الميلاد
 
     # إرسال النموذج
     driver.find_element(By.NAME, "signup_submit_button").click()  # استبدل "signup_submit_button" بزر الإرسال الصحيح
