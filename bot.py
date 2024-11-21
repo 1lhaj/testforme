@@ -42,7 +42,10 @@ def create_account():
     driver.find_element(By.CLASS_NAME, "signup_displayname_input").send_keys(username)  # استخدام الصنف
     driver.find_element(By.NAME, "signup_email").send_keys(email)    # استبدل "email" باسم الحقل
     driver.find_element(By.NAME, "signup_password").send_keys(password)  # استبدل "password" باسم الحقل
-    driver.find_element(By.NAME, "signup_reenter_password").send_keys(password)  # إعادة إدخال كلمة المرور
+
+    # إعادة إدخال كلمة المرور باستخدام XPATH
+    driver.find_element(By.XPATH, "//input[@name='signup_reenter_password']").send_keys(password)  # إعادة إدخال كلمة المرور
+
     driver.find_element(By.NAME, "signup_birthday").send_keys(formatted_birthdate)  # إدخال تاريخ الميلاد
 
     # إرسال النموذج
