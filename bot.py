@@ -41,14 +41,25 @@ def create_account():
     # تعبئة الحقول
     driver.find_element(By.CLASS_NAME, "signup_displayname_input").send_keys(username)  # استخدام الصنف
     driver.find_element(By.NAME, "signup_email").send_keys(email)    # استبدل "email" باسم الحقل
-    driver.find_element(By.NAME, "signup_password").send_keys(password)  # استبدل "password" باسم الحقل
+    driver.find_element(By.NAME, "signup_password").send_keys(password)  # كلمة السر
 
-    # إعادة إدخال كلمة المرور باستخدام XPATH
-    driver.find_element(By.XPATH, "//input[@name='signup_reenter_password']").send_keys(password)  # إعادة إدخال كلمة المرور
+    # الانتظار والتأكد من وجود حقل إعادة إدخال كلمة المرور
+    try:
+        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.NAME, "confirm_password")))  # تأكد من وجود حقل إعادة إدخال كلمة السر
+        driver.find_element(By.NAME, "confirm_password").send_keys(password)  # إعادة إدخال كلمة المرور
+    except:
+        print("لم يتم العثور على حقل إعادة إدخال كلمة المرور.")
+        driver.quit()
+        return
 
     # إدخال تاريخ الميلاد باستخدام XPath
-    WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, "//input[@class='date-picker-input']")))
-    driver.find_element(By.XPATH, "//input[@class='date-picker-input']").send_keys(formatted_birthdate)  # إدخال تاريخ الميلاد
+    try:
+        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, "//input[@class='date-picker-input']")))
+        driver.find_element(By.XPATH, "//input[@class='date-picker-input']").send_keys(formatted_birthdate)  # إدخال تاريخ الميلاد
+    except:
+        print("لم يتم العثور على حقل تاريخ الميلاد.")
+        driver.quit()
+        return
 
     # إرسال النموذج
     driver.find_element(By.NAME, "signup_submit_button").click()  # استبدل "signup_submit_button" بزر الإرسال الصحيح
