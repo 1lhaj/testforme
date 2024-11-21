@@ -38,9 +38,10 @@ def create_account():
     driver.find_element(By.ID, "create_account_button").click()  # استبدل "create_account_button" بزر الإرسال الصحيح
     time.sleep(5)
 
-    # حفظ البيانات
-    with open("accounts.csv", "a") as file:
-        file.write(f"{username},{email},{password}\n")
+    # حفظ البيانات في ملف CSV
+    with open("accounts.csv", "a", newline="") as file:
+        writer = csv.writer(file)
+        writer.writerow([username, email, password, username, formatted_birthdate])
 
 def follow_account(target_username):
     driver.get("https://secure.imvu.com/welcome/login/")  # رابط تسجيل الدخول
@@ -48,7 +49,7 @@ def follow_account(target_username):
     with open("accounts.csv", "r") as file:
         accounts = csv.reader(file)
         for account in accounts:
-            username, email, password = account
+            username, email, password, display_name, birthdate = account
             # تسجيل الدخول
             driver.find_element(By.ID, "email").send_keys(email)    # استبدل "email" بالحقل الصحيح
             driver.find_element(By.ID, "password").send_keys(password)  # استبدل "password" بالحقل الصحيح
