@@ -24,14 +24,18 @@ def create_account():
     username = fake.user_name()
     email = fake.email()
     password = "password123"
+    birthdate = fake.date_of_birth(minimum_age=18, maximum_age=99)  # العمر أكبر من 18 سنة
+    formatted_birthdate = birthdate.strftime("%m/%d/%Y")  # تنسيق التاريخ كما هو مطلوب (mm/dd/yyyy)
 
-    # تعبئة الحقول (تأكد من صحة أسماء الحقول)
-    driver.find_element(By.ID, "name").send_keys(username)  # استبدل "name" بالحقل الصحيح
+    # تعبئة الحقول
+    driver.find_element(By.ID, "display_name").send_keys(username)  # استبدل "display_name" بالحقل الصحيح
     driver.find_element(By.ID, "email").send_keys(email)    # استبدل "email" بالحقل الصحيح
     driver.find_element(By.ID, "password").send_keys(password)  # استبدل "password" بالحقل الصحيح
+    driver.find_element(By.ID, "reenter_password").send_keys(password)  # إعادة إدخال كلمة المرور
+    driver.find_element(By.ID, "birthdate").send_keys(formatted_birthdate)  # إدخال تاريخ الميلاد
 
     # إرسال النموذج
-    driver.find_element(By.ID, "submit_button").click()  # استبدل "submit_button" بزر الإرسال الصحيح
+    driver.find_element(By.ID, "create_account_button").click()  # استبدل "create_account_button" بزر الإرسال الصحيح
     time.sleep(5)
 
     # حفظ البيانات
