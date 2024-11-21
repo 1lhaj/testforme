@@ -20,27 +20,37 @@ options.add_argument("--disable-dev-shm-usage")
 service = Service(GeckoDriverManager().install())
 driver = webdriver.Firefox(service=service, options=options)
 
+# دالة للتحقق من وجود الحساب
+def is_account_exist(username, email):
+    try:
+        with open("accounts.csv", "r") as file:
+            accounts = csv.reader(file)
+            next(accounts)  # تخطي العنوان
+            for account in accounts:
+                if account[0] == username or account[1] == email:
+                    return True
+        return False
+    except FileNotFoundError:
+        return False  # إذا كان الملف غير موجود من البداية
+
 def create_account():
     try:
         driver.get("https://ar.secure.imvu.com/welcome/ftux/account/")  # رابط التسجيل
         time.sleep(5)  # انتظر تحميل الصفحة بالكامل
 
-        # تعبئة الحقول
+        # توليد بيانات وهمية جديدة
         username = fake.user_name()
         email = fake.email()
         password = "password123"
         birthdate = fake.date_of_birth(minimum_age=18, maximum_age=99)  # العمر أكبر من 18 سنة
         formatted_birthdate = birthdate.strftime("%Y-%m-%d")  # تنسيق التاريخ كما هو مطلوب (yyyy-mm-dd)
 
-        # تحقق من أن الاسم والبريد الإلكتروني غير موجودين مسبقًا (يمكنك إضافة بعض المنطق هنا للتحقق من الحسابات المكررة)
-        with open("accounts.csv", "r") as file:
-            accounts = csv.reader(file)
-            for account in accounts:
-                if account[0] == username or account[1] == email:
-                    print(f"تم العثور على حساب مكرر: {username}, {email}. سيتم إنشاء حساب جديد.")
-                    return  # عدم إنشاء الحساب إذا كانت البيانات مكررة
+        # التحقق من أن الحساب غير موجود مسبقًا
+        if is_account_exist(username, email):
+            print(f"الحساب بالاسم {username} أو البريد {email} موجود بالفعل، جاري إنشاء حساب جديد...")
+            return create_account()  # إعادة المحاولة لإنشاء حساب جديد
 
-        # تعبئة البيانات في الحقول
+        # تعبئة الحقول
         driver.find_element(By.CLASS_NAME, "signup_displayname_input").send_keys(username)
         driver.find_element(By.NAME, "signup_email").send_keys(email)
         driver.find_element(By.NAME, "signup_password").send_keys(password)
@@ -72,13 +82,18 @@ def create_account():
             writer = csv.writer(file)
             writer.writerow([username, email, password, username, formatted_birthdate])
 
+        # تحقق من أن الحساب تم إنشاؤه بنجاح
+        driver.get("https://secure.imvu.com/welcome/login/")  # رابط تسجيل الدخول
+        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.NAME, "login_email"))).send_keys(email)
+        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.NAME, "login_password"))).send_keys(password)
+        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.NAME, "login_button"))).click()
+        print(f"تم تسجيل الدخول بنجاح باستخدام الحساب {username}.")
+
     except Exception as e:
         print(f"حدث خطأ أثناء إنشاء الحساب: {e}")
 
 def follow_account(target_username):
     try:
-        driver.get("https://secure.imvu.com/welcome/login/")  # رابط تسجيل الدخول
-
         with open("accounts.csv", "r") as file:
             accounts = csv.reader(file)
             for account in accounts:
@@ -110,6 +125,7 @@ def follow_account(target_username):
 
 # تشغيل الكود
 create_account()
+follow_account("Joseph583531")
 
 # إغلاق المتصفح بعد الانتهاء
 driver.quit()
