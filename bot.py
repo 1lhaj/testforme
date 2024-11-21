@@ -12,7 +12,7 @@ fake = Faker()
 driver = webdriver.Chrome(executable_path="chromedriver")
 
 def create_account():
-    driver.get("https://example.com/register")  # ضع رابط التسجيل الخاص بالموقع هنا
+    driver.get("https://ar.secure.imvu.com/welcome/ftux/account/")  # ضع رابط التسجيل الخاص بالموقع هنا
 
     username = fake.user_name()
     email = fake.email()
@@ -32,7 +32,7 @@ def create_account():
         file.write(f"{username},{email},{password}\n")
 
 def follow_account(target_username):
-    driver.get("https://example.com/login")  # ضع رابط تسجيل الدخول هنا
+    driver.get("https://secure.imvu.com/welcome/login/")  # ضع رابط تسجيل الدخول هنا
 
     with open("accounts.csv", "r") as file:
         accounts = csv.reader(file)
@@ -45,7 +45,7 @@ def follow_account(target_username):
             time.sleep(3)
 
             # متابعة الحساب
-            driver.get(f"https://example.com/{target_username}")
+            driver.get(f"https://www.imvu.com/next/av/Joseph583531/")
             driver.find_element(By.ID, "follow_button").click()
             time.sleep(2)
 
