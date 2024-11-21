@@ -21,18 +21,27 @@ service = Service(GeckoDriverManager().install())
 driver = webdriver.Firefox(service=service, options=options)
 
 # دالة للتحقق من وجود الحساب
+# دالة للتحقق من وجود الحساب
 def is_account_exist(username, email):
     try:
         # فحص الحسابات في ملف CSV للتأكد من عدم التكرار
         with open("accounts.csv", "r") as file:
             accounts = csv.reader(file)
             next(accounts)  # تخطي العنوان
-            for account in accounts:
-                if account[0] == username or account[1] == email:
-                    return True
+
+            # التأكد من أن هناك بيانات
+            accounts_list = list(accounts)
+            if not accounts_list:  # إذا كان الملف فارغًا
+                return False
+
+            for account in accounts_list:
+                if len(account) >= 5:  # التأكد من أن كل صف يحتوي على البيانات المطلوبة
+                    if account[0] == username or account[1] == email:
+                        return True
         return False
     except FileNotFoundError:
         return False  # إذا كان الملف غير موجود من البداية
+  # إذا كان الملف غير موجود من البداية
 
 # دالة لإنشاء حساب جديد والتحقق من صحته
 def create_account():
