@@ -23,9 +23,10 @@ driver = webdriver.Firefox(service=service, options=options)
 
 def create_account():
     driver.get("https://ar.secure.imvu.com/welcome/ftux/account/")  # رابط التسجيل
+    time.sleep(5)  # انتظر 5 ثوانٍ للتأكد من تحميل الصفحة بالكامل
 
     # الانتظار حتى يظهر العنصر
-    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "display_name")))
+    WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, "display_name")))
 
     username = fake.user_name()
     email = fake.email()
