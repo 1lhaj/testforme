@@ -4,7 +4,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
 from faker import Faker
 import time
 import csv
@@ -26,7 +25,12 @@ def create_account():
     time.sleep(5)  # انتظر 5 ثوانٍ للتأكد من تحميل الصفحة بالكامل
 
     # الانتظار حتى يظهر العنصر
-    WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, "display_name")))
+    try:
+        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, "signup_displayname_input")))
+    except:
+        print("لم يتم العثور على العنصر بعد 30 ثانية.")
+        driver.quit()
+        return
 
     username = fake.user_name()
     email = fake.email()
@@ -35,14 +39,14 @@ def create_account():
     formatted_birthdate = birthdate.strftime("%m/%d/%Y")  # تنسيق التاريخ كما هو مطلوب (mm/dd/yyyy)
 
     # تعبئة الحقول
-    driver.find_element(By.ID, "display_name").send_keys(username)  # استبدل "display_name" بالحقل الصحيح
-    driver.find_element(By.ID, "email").send_keys(email)    # استبدل "email" بالحقل الصحيح
-    driver.find_element(By.ID, "password").send_keys(password)  # استبدل "password" بالحقل الصحيح
-    driver.find_element(By.ID, "reenter_password").send_keys(password)  # إعادة إدخال كلمة المرور
-    driver.find_element(By.ID, "birthdate").send_keys(formatted_birthdate)  # إدخال تاريخ الميلاد
+    driver.find_element(By.CLASS_NAME, "signup_displayname_input").send_keys(username)  # استخدام الصنف
+    driver.find_element(By.NAME, "signup_email").send_keys(email)    # استبدل "email" باسم الحقل
+    driver.find_element(By.NAME, "signup_password").send_keys(password)  # استبدل "password" باسم الحقل
+    driver.find_element(By.NAME, "signup_reenter_password").send_keys(password)  # إعادة إدخال كلمة المرور
+    driver.find_element(By.NAME, "signup_birthday").send_keys(formatted_birthdate)  # إدخال تاريخ الميلاد
 
     # إرسال النموذج
-    driver.find_element(By.ID, "create_account_button").click()  # استبدل "create_account_button" بزر الإرسال الصحيح
+    driver.find_element(By.NAME, "signup_submit_button").click()  # استبدل "signup_submit_button" بزر الإرسال الصحيح
     time.sleep(5)
 
     # حفظ البيانات في ملف CSV
@@ -58,14 +62,14 @@ def follow_account(target_username):
         for account in accounts:
             username, email, password, display_name, birthdate = account
             # تسجيل الدخول
-            driver.find_element(By.ID, "email").send_keys(email)    # استبدل "email" بالحقل الصحيح
-            driver.find_element(By.ID, "password").send_keys(password)  # استبدل "password" بالحقل الصحيح
-            driver.find_element(By.ID, "login_button").click()  # استبدل "login_button" بزر الدخول الصحيح
+            driver.find_element(By.NAME, "login_email").send_keys(email)    # استبدل "login_email" باسم الحقل
+            driver.find_element(By.NAME, "login_password").send_keys(password)  # استبدل "login_password" باسم الحقل
+            driver.find_element(By.NAME, "login_button").click()  # استبدل "login_button" بزر الدخول الصحيح
             time.sleep(3)
 
             # متابعة الحساب
             driver.get(f"https://www.imvu.com/next/av/{target_username}/")
-            driver.find_element(By.ID, "follow_button").click()  # استبدل "follow_button" بزر المتابعة الصحيح
+            driver.find_element(By.CLASS_NAME, "follow_button").click()  # استبدل "follow_button" بزر المتابعة الصحيح
             time.sleep(2)
 
             # تسجيل الخروج
