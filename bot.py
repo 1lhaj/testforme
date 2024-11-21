@@ -32,6 +32,15 @@ def create_account():
         birthdate = fake.date_of_birth(minimum_age=18, maximum_age=99)  # العمر أكبر من 18 سنة
         formatted_birthdate = birthdate.strftime("%Y-%m-%d")  # تنسيق التاريخ كما هو مطلوب (yyyy-mm-dd)
 
+        # تحقق من أن الاسم والبريد الإلكتروني غير موجودين مسبقًا (يمكنك إضافة بعض المنطق هنا للتحقق من الحسابات المكررة)
+        with open("accounts.csv", "r") as file:
+            accounts = csv.reader(file)
+            for account in accounts:
+                if account[0] == username or account[1] == email:
+                    print(f"تم العثور على حساب مكرر: {username}, {email}. سيتم إنشاء حساب جديد.")
+                    return  # عدم إنشاء الحساب إذا كانت البيانات مكررة
+
+        # تعبئة البيانات في الحقول
         driver.find_element(By.CLASS_NAME, "signup_displayname_input").send_keys(username)
         driver.find_element(By.NAME, "signup_email").send_keys(email)
         driver.find_element(By.NAME, "signup_password").send_keys(password)
@@ -101,7 +110,6 @@ def follow_account(target_username):
 
 # تشغيل الكود
 create_account()
-follow_account("Joseph583531")
 
 # إغلاق المتصفح بعد الانتهاء
 driver.quit()
