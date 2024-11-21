@@ -14,67 +14,86 @@ fake = Faker()
 
 # إعداد المتصفح في وضع headless
 options = Options()
-options.add_argument("--headless")
+options.add_argument("--headless")  # للتشغيل بدون واجهة
 options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
 service = Service(GeckoDriverManager().install())
 driver = webdriver.Firefox(service=service, options=options)
 
 def create_account():
-    driver.get("https://ar.secure.imvu.com/welcome/ftux/account/")  # رابط التسجيل
-    time.sleep(5)  # انتظر 5 ثوانٍ للتأكد من تحميل الصفحة بالكامل
+    try:
+        driver.get("https://ar.secure.imvu.com/welcome/ftux/account/")  # رابط التسجيل
+        time.sleep(5)  # انتظر تحميل الصفحة بالكامل
 
-    # تعبئة الحقول
-    username = fake.user_name()
-    email = fake.email()
-    password = "password123"
-    birthdate = fake.date_of_birth(minimum_age=18, maximum_age=99)  # العمر أكبر من 18 سنة
-    formatted_birthdate = birthdate.strftime("%Y-%m-%d")  # تنسيق التاريخ كما هو مطلوب (yyyy-mm-dd)
+        # تعبئة الحقول
+        username = fake.user_name()
+        email = fake.email()
+        password = "password123"
+        birthdate = fake.date_of_birth(minimum_age=18, maximum_age=99)  # العمر أكبر من 18 سنة
+        formatted_birthdate = birthdate.strftime("%Y-%m-%d")  # تنسيق التاريخ كما هو مطلوب (yyyy-mm-dd)
 
-    driver.find_element(By.CLASS_NAME, "signup_displayname_input").send_keys(username)  # استخدام الصنف
-    driver.find_element(By.NAME, "signup_email").send_keys(email)    # استبدل "email" باسم الحقل
-    driver.find_element(By.NAME, "signup_password").send_keys(password)  # كلمة السر
+        driver.find_element(By.CLASS_NAME, "signup_displayname_input").send_keys(username)
+        driver.find_element(By.NAME, "signup_email").send_keys(email)
+        driver.find_element(By.NAME, "signup_password").send_keys(password)
 
-    # تأكد من وجود حقل إعادة إدخال كلمة المرور
-    WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.NAME, "confirm_password")))  
-    driver.find_element(By.NAME, "confirm_password").send_keys(password)  # إعادة إدخال كلمة المرور
+        # تأكد من وجود حقل إعادة إدخال كلمة المرور
+        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.NAME, "confirm_password")))
+        driver.find_element(By.NAME, "confirm_password").send_keys(password)
 
-    # إدخال تاريخ الميلاد باستخدام XPath
-    WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, "//input[@class='date-picker-input']")))
-    driver.find_element(By.XPATH, "//input[@class='date-picker-input']").send_keys(formatted_birthdate)  # إدخال تاريخ الميلاد
+        # إدخال تاريخ الميلاد باستخدام XPath
+        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.XPATH, "//input[@class='date-picker-input']")))
+        date_input = driver.find_element(By.XPATH, "//input[@class='date-picker-input']")
+        date_input.clear()
+        date_input.send_keys(formatted_birthdate)
 
-    # تأكد من أن الزر جاهز للنقر عليه
-    WebDriverWait(driver, 30).until(EC.element_to_be_clickable((By.ID, "registration-submit"))).click()  # انقر على زر التسجيل
+        # التحقق من تفعيل الزر وإزالته من حالة التعطيل إذا لزم الأمر
+        submit_button = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, "registration-submit")))
+        if not submit_button.is_enabled():
+            driver.execute_script("arguments[0].removeAttribute('disabled');", submit_button)
 
-    time.sleep(5)  # انتظر قليلاً بعد الإرسال
+        # الضغط على الزر
+        submit_button.click()
+        print("تم إنشاء الحساب بنجاح.")
 
-    # حفظ البيانات في ملف CSV
-    with open("accounts.csv", "a", newline="") as file:
-        writer = csv.writer(file)
-        writer.writerow([username, email, password, username, formatted_birthdate])
+        time.sleep(5)  # انتظر قليلاً بعد الإرسال
+
+        # حفظ البيانات في ملف CSV
+        with open("accounts.csv", "a", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow([username, email, password, username, formatted_birthdate])
+
+    except Exception as e:
+        print(f"حدث خطأ أثناء إنشاء الحساب: {e}")
 
 def follow_account(target_username):
-    driver.get("https://secure.imvu.com/welcome/login/")  # رابط تسجيل الدخول
+    try:
+        driver.get("https://secure.imvu.com/welcome/login/")  # رابط تسجيل الدخول
 
-    with open("accounts.csv", "r") as file:
-        accounts = csv.reader(file)
-        for account in accounts:
-            username, email, password, display_name, birthdate = account
-            # تسجيل الدخول
-            driver.find_element(By.NAME, "login_email").send_keys(email)    # استبدل "login_email" باسم الحقل
-            driver.find_element(By.NAME, "login_password").send_keys(password)  # استبدل "login_password" باسم الحقل
-            driver.find_element(By.NAME, "login_button").click()  # استبدل "login_button" بزر الدخول الصحيح
-            time.sleep(3)
+        with open("accounts.csv", "r") as file:
+            accounts = csv.reader(file)
+            for account in accounts:
+                username, email, password, display_name, birthdate = account
 
-            # متابعة الحساب
-            driver.get(f"https://www.imvu.com/next/av/{target_username}/")
-            driver.find_element(By.CLASS_NAME, "follow_button").click()  # استبدل "follow_button" بزر المتابعة الصحيح
-            time.sleep(2)
+                # تسجيل الدخول
+                WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.NAME, "login_email"))).send_keys(email)
+                WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.NAME, "login_password"))).send_keys(password)
+                WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.NAME, "login_button"))).click()
+                time.sleep(3)
 
-            # تسجيل الخروج
-            driver.get("https://secure.imvu.com/welcome/logout/")  # رابط تسجيل الخروج
+                # متابعة الحساب
+                driver.get(f"https://www.imvu.com/next/av/{target_username}/")
+                follow_button = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, "follow_button")))
+                follow_button.click()
+                print(f"تمت متابعة الحساب: {target_username}")
 
-# مثال على كيفية استخدام الدوال
+                # تسجيل الخروج
+                driver.get("https://secure.imvu.com/welcome/logout/")
+                print(f"تم تسجيل الخروج من الحساب: {email}")
+
+    except Exception as e:
+        print(f"حدث خطأ أثناء متابعة الحساب: {e}")
+
+# تشغيل الكود
 create_account()
 follow_account("Joseph583531")
 
