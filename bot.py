@@ -44,12 +44,13 @@ def create_account():
 
         # التحقق من تفعيل الزر وإزالته من حالة التعطيل إذا لزم الأمر
         submit_button = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.ID, "registration-submit")))
+        
+        # تمرير الصفحة إلى الزر للتأكد من أنه غير مغطى
+        driver.execute_script("arguments[0].scrollIntoView();", submit_button)
+        time.sleep(1)  # الانتظار قليلاً بعد التمرير
+
         if not submit_button.is_enabled():
             driver.execute_script("arguments[0].removeAttribute('disabled');", submit_button)
-
-        # تمرير الصفحة إلى الزر والتأكد من أنه مرئي
-        driver.execute_script("arguments[0].scrollIntoView();", submit_button)
-        time.sleep(1)  # انتظر قليلاً بعد التمرير
 
         # الضغط على الزر
         submit_button.click()
@@ -82,7 +83,13 @@ def follow_account(target_username):
 
                 # متابعة الحساب
                 driver.get(f"https://www.imvu.com/next/av/{target_username}/")
-                WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, "follow_button"))).click()
+                follow_button = WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, "follow_button")))
+
+                # تمرير الصفحة إلى الزر إذا كان مغطى
+                driver.execute_script("arguments[0].scrollIntoView();", follow_button)
+                time.sleep(1)  # الانتظار قليلاً بعد التمرير
+
+                follow_button.click()
                 print(f"تمت متابعة الحساب: {target_username}")
 
                 # تسجيل الخروج
