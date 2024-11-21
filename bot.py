@@ -2,6 +2,9 @@ from selenium import webdriver
 from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
 from faker import Faker
 import time
 import csv
@@ -20,6 +23,9 @@ driver = webdriver.Firefox(service=service, options=options)
 
 def create_account():
     driver.get("https://ar.secure.imvu.com/welcome/ftux/account/")  # رابط التسجيل
+
+    # الانتظار حتى يظهر العنصر
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "display_name")))
 
     username = fake.user_name()
     email = fake.email()
