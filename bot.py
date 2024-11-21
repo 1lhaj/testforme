@@ -26,9 +26,9 @@ def create_account():
 
     # الانتظار حتى يظهر العنصر
     try:
-        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.CLASS_NAME, "signup_displayname_input")))
+        WebDriverWait(driver, 30).until(EC.presence_of_element_located((By.NAME, "signup_birthday")))
     except:
-        print("لم يتم العثور على العنصر بعد 30 ثانية.")
+        print("لم يتم العثور على حقل تاريخ الميلاد بعد 30 ثانية.")
         driver.quit()
         return
 
