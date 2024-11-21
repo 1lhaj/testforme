@@ -1,18 +1,18 @@
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from faker import Faker
 import time
 import csv
-from webdriver_manager.chrome import ChromeDriverManager
+from webdriver_manager.firefox import GeckoDriverManager
 
 # إعداد البيانات الوهمية
 fake = Faker()
 
 # إعداد المتصفح
-service = Service(ChromeDriverManager().install())
-driver = webdriver.Chrome(service=service)
+service = Service(GeckoDriverManager().install())
+driver = webdriver.Firefox(service=service)
 
 def create_account():
     driver.get("https://ar.secure.imvu.com/welcome/ftux/account/")  # ضع رابط التسجيل الخاص بالموقع هنا
