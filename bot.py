@@ -23,6 +23,7 @@ driver = webdriver.Firefox(service=service, options=options)
 # دالة للتحقق من وجود الحساب
 def is_account_exist(username, email):
     try:
+        # فحص الحسابات في ملف CSV للتأكد من عدم التكرار
         with open("accounts.csv", "r") as file:
             accounts = csv.reader(file)
             next(accounts)  # تخطي العنوان
@@ -33,6 +34,7 @@ def is_account_exist(username, email):
     except FileNotFoundError:
         return False  # إذا كان الملف غير موجود من البداية
 
+# دالة لإنشاء حساب جديد والتحقق من صحته
 def create_account():
     try:
         driver.get("https://ar.secure.imvu.com/welcome/ftux/account/")  # رابط التسجيل
