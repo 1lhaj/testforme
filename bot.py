@@ -1,7 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.firefox.options import Options
 from faker import Faker
 import time
 import csv
@@ -11,8 +11,10 @@ from webdriver_manager.firefox import GeckoDriverManager
 fake = Faker()
 
 # إعداد المتصفح
+options = Options()
+options.headless = True  # تشغيل Firefox في وضع headless
 service = Service(GeckoDriverManager().install())
-driver = webdriver.Firefox(service=service)
+driver = webdriver.Firefox(service=service, options=options)
 
 def create_account():
     driver.get("https://ar.secure.imvu.com/welcome/ftux/account/")  # ضع رابط التسجيل الخاص بالموقع هنا
