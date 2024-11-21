@@ -1,15 +1,18 @@
 from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from faker import Faker
 import time
 import csv
+from webdriver_manager.chrome import ChromeDriverManager
 
 # إعداد البيانات الوهمية
 fake = Faker()
 
 # إعداد المتصفح
-driver = webdriver.Chrome(executable_path="chromedriver")
+service = Service(ChromeDriverManager().install())
+driver = webdriver.Chrome(service=service)
 
 def create_account():
     driver.get("https://ar.secure.imvu.com/welcome/ftux/account/")  # ضع رابط التسجيل الخاص بالموقع هنا
@@ -45,11 +48,16 @@ def follow_account(target_username):
             time.sleep(3)
 
             # متابعة الحساب
-            driver.get(f"https://www.imvu.com/next/av/Joseph583531/")
+            driver.get(f"https://www.imvu.com/next/av/{target_username}/")
             driver.find_element(By.ID, "follow_button").click()
             time.sleep(2)
 
             # تسجيل الخروج
-            driver.get("https://example.com/logout")
+            driver.get("https://example.com/logout")  # تأكد من وضع رابط تسجيل الخروج الصحيح
 
+# مثال على كيفية استخدام الدوال
+create_account()
+follow_account("Joseph583531")
+
+# إغلاق المتصفح بعد الانتهاء
 driver.quit()
