@@ -101,7 +101,7 @@ def create_account():
         try:
             # الانتظار حتى يصبح المربع قابلاً للنقر
             captcha_checkbox = WebDriverWait(driver, 30).until(
-                EC.element_to_be_clickable((By.ID, "recaptcha-anchor"))
+                EC.element_to_be_clickable((By.CLASS_NAME, "recaptcha-checkbox-checkmark"))
             )
             time.sleep(2)  # الانتظار لبضع ثوانٍ لضمان ظهور المربع
             captcha_checkbox.click()  # الضغط على المربع
