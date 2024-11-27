@@ -71,7 +71,7 @@ def create_account():
         account_number = get_next_account_number()
         username = f"elitbotnew{account_number}"
         email = f"elitbotnew{account_number}@dsf.com"
-        password = "password123"
+        password = "Moammedmax34"
         birthdate = "1990-01-01"
 
         # فتح صفحة التسجيل
