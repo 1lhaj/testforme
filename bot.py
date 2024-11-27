@@ -8,7 +8,7 @@ from faker import Faker
 import time
 import csv
 from webdriver_manager.firefox import GeckoDriverManager
-import requests  # مكتبة التعامل مع API
+import requests
 
 # إعداد البيانات الوهمية
 fake = Faker()
@@ -83,10 +83,11 @@ def create_account():
         except Exception as e:
             print("لم يتم العثور على Captcha، الاستمرار...")
 
-        # الضغط على زر التسجيل
+        # الضغط على زر التسجيل باستخدام JavaScript
         submit_button = driver.find_element(By.ID, "registration-submit")
-        driver.execute_script("arguments[0].scrollIntoView();", submit_button)
-        submit_button.click()
+        driver.execute_script("arguments[0].scrollIntoView(true);", submit_button)
+        time.sleep(1)
+        driver.execute_script("arguments[0].click();", submit_button)
 
         # التحقق من وجود Captcha جديدة بعد الضغط على "Create Account"
         try:
@@ -100,7 +101,7 @@ def create_account():
             captcha_solution = solve_captcha(captcha_url)
             if captcha_solution:
                 driver.find_element(By.ID, "captcha_input").send_keys(captcha_solution)
-                submit_button.click()  # إعادة المحاولة بالضغط على الزر
+                driver.execute_script("arguments[0].click();", submit_button)  # إعادة المحاولة
             else:
                 print("فشل حل Captcha الجديدة.")
                 return
