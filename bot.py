@@ -1,50 +1,3 @@
-from selenium import webdriver
-from selenium.webdriver.firefox.service import Service
-from selenium.webdriver.common.by import By
-from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-from faker import Faker
-import time
-import csv
-from webdriver_manager.firefox import GeckoDriverManager
-import requests  # مكتبة التعامل مع API
-
-# إعداد البيانات الوهمية
-fake = Faker()
-
-# إعداد المتصفح في وضع headless
-options = Options()
-options.add_argument("--headless")
-options.add_argument("--no-sandbox")
-options.add_argument("--disable-dev-shm-usage")
-service = Service(GeckoDriverManager().install())
-driver = webdriver.Firefox(service=service, options=options)
-
-# بيانات API الخاصة بحل Captcha
-CAPTCHA_API_KEY = "a67d3ce22ef5749d70ee34da412c5f32d998462a"
-CAPTCHA_API_URL = "https://api.zenrows.com/v1/"
-
-def solve_captcha(captcha_image_url):
-    """
-    إرسال Captcha إلى الخدمة للحصول على الحل.
-    """
-    try:
-        params = {
-            'url': captcha_image_url,
-            'apikey': CAPTCHA_API_KEY,
-        }
-        response = requests.get(CAPTCHA_API_URL, params=params)
-        if response.status_code == 200:
-            result = response.json()
-            return result.get("text", "")
-        else:
-            print(f"خطأ في حل Captcha: {response.status_code}")
-            return None
-    except Exception as e:
-        print(f"حدث خطأ أثناء حل Captcha: {e}")
-        return None
-
 def create_account():
     try:
         driver.get("https://ar.secure.imvu.com/welcome/ftux/account/")
@@ -88,6 +41,26 @@ def create_account():
         driver.execute_script("arguments[0].scrollIntoView();", submit_button)
         submit_button.click()
 
+        # انتظار الصفحة الجديدة واكتشاف وجود كابتشا جديد
+        try:
+            captcha_image = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "img.captcha-image"))
+            )
+            print("تم العثور على كابتشا جديدة بعد التسجيل.")
+            captcha_url = captcha_image.get_attribute("src")
+
+            # حل Captcha الجديدة
+            captcha_solution = solve_captcha(captcha_url)
+            if captcha_solution:
+                driver.find_element(By.ID, "captcha_input").send_keys(captcha_solution)
+                submit_button = driver.find_element(By.ID, "registration-submit")
+                submit_button.click()
+            else:
+                print("فشل حل Captcha الجديدة.")
+                return
+        except Exception as e:
+            print("لم يتم العثور على كابتشا جديدة، المتابعة...")
+
         # انتظار استجابة التسجيل
         time.sleep(5)
         print(f"تم إنشاء الحساب بنجاح: {username}, {email}")
@@ -99,9 +72,3 @@ def create_account():
 
     except Exception as e:
         print(f"حدث خطأ أثناء إنشاء الحساب: {e}")
-
-# تشغيل الكود
-create_account()
-
-# إغلاق المتصفح
-driver.quit()
