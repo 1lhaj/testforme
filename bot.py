@@ -71,7 +71,7 @@ def create_account():
         account_number = get_next_account_number()
         username = f"elitbotnew{account_number}"
         email = f"elitbotnew{account_number}@dsf.com"
-        password = "Moammedmax34"
+        password = "password123"
         birthdate = "1990-01-01"
 
         # فتح صفحة التسجيل
@@ -96,17 +96,15 @@ def create_account():
         driver.execute_script("arguments[0].click();", submit_button)
         save_screenshot("after_submit")
 
-        # البحث عن مربع "I'm not a robot" والضغط عليه
-        try:
-            print("البحث عن مربع Captcha والضغط عليه...")
-            captcha_checkbox = WebDriverWait(driver, 10).until(
-                EC.element_to_be_clickable((By.ID, "recaptcha-anchor-label"))
-            )
-            captcha_checkbox.click()
-            save_screenshot("captcha_clicked")
-            print("تم الضغط على مربع Captcha.")
-        except:
-            print("لم يتم العثور على مربع Captcha، المتابعة...")
+        # انتظار ظهور مربع Captcha بعد الضغط على Create Account
+        print("الانتظار حتى يظهر مربع Captcha...")
+        captcha_checkbox = WebDriverWait(driver, 20).until(
+            EC.element_to_be_clickable((By.CLASS_NAME, "recaptcha-checkbox-border"))
+        )
+        time.sleep(2)  # الانتظار لبضع ثوانٍ لضمان ظهور المربع
+        captcha_checkbox.click()  # الضغط على المربع
+        save_screenshot("captcha_clicked")
+        print("تم الضغط على مربع Captcha.")
 
         # انتظار ظهور صورة Captcha
         print("الانتظار حتى تظهر Captcha...")
