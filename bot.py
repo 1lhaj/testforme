@@ -1,3 +1,4 @@
+import os
 from selenium import webdriver
 from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.common.by import By
@@ -9,9 +10,6 @@ import time
 import csv
 from webdriver_manager.firefox import GeckoDriverManager
 import requests
-
-# إعداد البيانات الوهمية
-fake = Faker()
 
 # إعداد المتصفح في وضع headless
 options = Options()
@@ -45,16 +43,36 @@ def solve_captcha(captcha_image_url):
         print(f"حدث خطأ أثناء حل Captcha: {e}")
         return None
 
+def get_next_account_number():
+    """
+    استرجاع الرقم التالي من ملف counter.txt أو إنشاء ملف جديد إذا لم يكن موجودًا.
+    """
+    counter_file = "counter.txt"
+    if os.path.exists(counter_file):
+        with open(counter_file, "r") as file:
+            return int(file.read().strip()) + 1
+    else:
+        return 1
+
+def save_account_number(account_number):
+    """
+    حفظ الرقم الأخير المستخدم في ملف counter.txt.
+    """
+    with open("counter.txt", "w") as file:
+        file.write(str(account_number))
+
 def create_account():
     try:
+        # استرجاع الرقم التالي وإنشاء الاسم والإيميل
+        account_number = get_next_account_number()
+        username = f"elitbotnew{account_number}"
+        email = f"elitbotnew{account_number}@dsf.com"
+        password = "password123"
+        birthdate = "1990-01-01"  # تاريخ ميلاد ثابت أو يمكن جعله متغيرًا
+
+        # فتح صفحة التسجيل
         driver.get("https://ar.secure.imvu.com/welcome/ftux/account/")
         time.sleep(5)
-
-        # توليد بيانات وهمية جديدة
-        username = fake.user_name()
-        email = fake.email()
-        password = "password123"
-        birthdate = fake.date_of_birth(minimum_age=18, maximum_age=99).strftime("%Y-%m-%d")
 
         # تعبئة الحقول
         driver.find_element(By.CLASS_NAME, "signup_displayname_input").send_keys(username)
@@ -89,28 +107,12 @@ def create_account():
         time.sleep(1)
         driver.execute_script("arguments[0].click();", submit_button)
 
-        # التحقق من وجود Captcha جديدة بعد الضغط على "Create Account"
-        try:
-            captcha_image = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, "img.captcha-image"))
-            )
-            print("تم العثور على كابتشا جديدة بعد التسجيل.")
-            captcha_url = captcha_image.get_attribute("src")
-
-            # حل Captcha الجديدة
-            captcha_solution = solve_captcha(captcha_url)
-            if captcha_solution:
-                driver.find_element(By.ID, "captcha_input").send_keys(captcha_solution)
-                driver.execute_script("arguments[0].click();", submit_button)  # إعادة المحاولة
-            else:
-                print("فشل حل Captcha الجديدة.")
-                return
-        except Exception as e:
-            print("لم يتم العثور على كابتشا جديدة، المتابعة...")
-
         # انتظار استجابة التسجيل
         time.sleep(5)
         print(f"تم إنشاء الحساب بنجاح: {username}, {email}")
+
+        # حفظ الرقم الأخير
+        save_account_number(account_number)
 
         # حفظ البيانات في CSV
         with open("accounts.csv", "a", newline="") as file:
