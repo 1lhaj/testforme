@@ -5,7 +5,6 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from faker import Faker
 import time
 import csv
 from webdriver_manager.firefox import GeckoDriverManager
@@ -84,41 +83,41 @@ def create_account():
         date_picker = driver.find_element(By.XPATH, "//input[@class='date-picker-input']")
         date_picker.send_keys(birthdate)
 
-        # التحقق من وجود Captcha
-        try:
-            captcha_image = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, "img.captcha-image"))
-            )
-            captcha_url = captcha_image.get_attribute("src")
-
-            # حل Captcha
-            captcha_solution = solve_captcha(captcha_url)
-            if captcha_solution:
-                driver.find_element(By.ID, "captcha_input").send_keys(captcha_solution)
-            else:
-                print("فشل حل Captcha.")
-                return
-        except Exception as e:
-            print("لم يتم العثور على Captcha، الاستمرار...")
-
-        # الضغط على زر التسجيل باستخدام JavaScript
+        # الضغط على زر "Create Account"
         submit_button = driver.find_element(By.ID, "registration-submit")
         driver.execute_script("arguments[0].scrollIntoView(true);", submit_button)
         time.sleep(1)
         driver.execute_script("arguments[0].click();", submit_button)
 
-        # انتظار استجابة التسجيل
-        time.sleep(5)
-        print(f"تم إنشاء الحساب بنجاح: {username}, {email}")
+        # انتظار ظهور Captcha
+        print("الانتظار حتى تظهر Captcha...")
+        captcha_image = WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, "img.captcha-image"))
+        )
+        captcha_url = captcha_image.get_attribute("src")
 
-        # حفظ الرقم الأخير
-        save_account_number(account_number)
+        # حل Captcha
+        captcha_solution = solve_captcha(captcha_url)
+        if captcha_solution:
+            print(f"حل Captcha: {captcha_solution}")
+            driver.find_element(By.ID, "captcha_input").send_keys(captcha_solution)
 
-        # حفظ البيانات في CSV
-        with open("accounts.csv", "a", newline="") as file:
-            writer = csv.writer(file)
-            writer.writerow([username, email, password, birthdate])
+            # إعادة الضغط على زر "Create Account" بعد إدخال Captcha
+            driver.execute_script("arguments[0].click();", submit_button)
 
+            # انتظار التأكيد
+            time.sleep(5)
+            print(f"تم إنشاء الحساب بنجاح: {username}, {email}")
+
+            # حفظ الرقم الأخير
+            save_account_number(account_number)
+
+            # حفظ البيانات في CSV
+            with open("accounts.csv", "a", newline="") as file:
+                writer = csv.writer(file)
+                writer.writerow([username, email, password, birthdate])
+        else:
+            print("فشل حل Captcha.")
     except Exception as e:
         print(f"حدث خطأ أثناء إنشاء الحساب: {e}")
 
