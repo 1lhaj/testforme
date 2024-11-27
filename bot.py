@@ -49,6 +49,7 @@ def save_screenshot(step_name):
 # حل Captcha باستخدام API
 def solve_captcha(captcha_image_url):
     try:
+        print(f"جاري محاولة حل Captcha: {captcha_image_url}")
         params = {
             'url': captcha_image_url,
             'apikey': CAPTCHA_API_KEY,
@@ -101,7 +102,7 @@ def create_account():
         try:
             # الانتظار حتى يصبح المربع قابلاً للنقر
             captcha_checkbox = WebDriverWait(driver, 30).until(
-                EC.element_to_be_clickable((By.CLASS_NAME, "recaptcha-checkbox-checkmark"))
+                EC.presence_of_element_located((By.CLASS_NAME, "recaptcha-checkbox-checkmark"))
             )
             time.sleep(2)  # الانتظار لبضع ثوانٍ لضمان ظهور المربع
             captcha_checkbox.click()  # الضغط على المربع
