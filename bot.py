@@ -1,14 +1,17 @@
-import os
 from selenium import webdriver
 from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from faker import Faker
 import time
 import csv
 from webdriver_manager.firefox import GeckoDriverManager
 import requests
+
+# إعداد البيانات الوهمية
+fake = Faker()
 
 # إعداد المتصفح في وضع headless
 options = Options()
@@ -22,10 +25,21 @@ driver = webdriver.Firefox(service=service, options=options)
 CAPTCHA_API_KEY = "a67d3ce22ef5749d70ee34da412c5f32d998462a"
 CAPTCHA_API_URL = "https://api.zenrows.com/v1/"
 
+# استرجاع الرقم التالي للحساب
+def get_next_account_number():
+    try:
+        with open("last_account_number.txt", "r") as file:
+            return int(file.read().strip()) + 1
+    except FileNotFoundError:
+        return 1
+
+# حفظ الرقم الأخير
+def save_account_number(account_number):
+    with open("last_account_number.txt", "w") as file:
+        file.write(str(account_number))
+
+# حل Captcha باستخدام API
 def solve_captcha(captcha_image_url):
-    """
-    إرسال Captcha إلى الخدمة للحصول على الحل.
-    """
     try:
         params = {
             'url': captcha_image_url,
@@ -42,24 +56,7 @@ def solve_captcha(captcha_image_url):
         print(f"حدث خطأ أثناء حل Captcha: {e}")
         return None
 
-def get_next_account_number():
-    """
-    استرجاع الرقم التالي من ملف counter.txt أو إنشاء ملف جديد إذا لم يكن موجودًا.
-    """
-    counter_file = "counter.txt"
-    if os.path.exists(counter_file):
-        with open(counter_file, "r") as file:
-            return int(file.read().strip()) + 1
-    else:
-        return 1
-
-def save_account_number(account_number):
-    """
-    حفظ الرقم الأخير المستخدم في ملف counter.txt.
-    """
-    with open("counter.txt", "w") as file:
-        file.write(str(account_number))
-
+# إنشاء حساب
 def create_account():
     try:
         # استرجاع الرقم التالي وإنشاء الاسم والإيميل
@@ -67,7 +64,7 @@ def create_account():
         username = f"elitbotnew{account_number}"
         email = f"elitbotnew{account_number}@dsf.com"
         password = "password123"
-        birthdate = "1990-01-01"  # تاريخ ميلاد ثابت أو يمكن جعله متغيرًا
+        birthdate = "1990-01-01"
 
         # فتح صفحة التسجيل
         driver.get("https://ar.secure.imvu.com/welcome/ftux/account/")
@@ -89,10 +86,21 @@ def create_account():
         time.sleep(1)
         driver.execute_script("arguments[0].click();", submit_button)
 
+        # الضغط على مربع Captcha إذا كان موجودًا
+        try:
+            print("التحقق من وجود مربع Captcha...")
+            captcha_checkbox = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, ".recaptcha-checkbox-border"))
+            )
+            captcha_checkbox.click()
+            print("تم الضغط على مربع Captcha.")
+        except:
+            print("لم يتم العثور على مربع Captcha، المتابعة...")
+
         # انتظار ظهور Captcha
         print("الانتظار حتى تظهر Captcha...")
-        captcha_image = WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, "img.captcha-image"))
+        captcha_image = WebDriverWait(driver, 30).until(
+            EC.presence_of_element_located((By.XPATH, "//img[contains(@class, 'captcha-image')]"))
         )
         captcha_url = captcha_image.get_attribute("src")
 
@@ -120,6 +128,8 @@ def create_account():
             print("فشل حل Captcha.")
     except Exception as e:
         print(f"حدث خطأ أثناء إنشاء الحساب: {e}")
+        driver.save_screenshot("error_screenshot.png")
+        print("تم حفظ لقطة الشاشة باسم error_screenshot.png.")
 
 # تشغيل الكود
 create_account()
