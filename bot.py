@@ -1,6 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
@@ -46,6 +47,14 @@ def save_screenshot(step_name):
     driver.save_screenshot(f"screenshots/{step_name}.png")
     print(f"تم حفظ لقطة الشاشة: {step_name}.png")
 
+# حفظ لقطة شاشة عند الضغط على المكان المحدد
+def save_click_location_screenshot(x, y, step_name):
+    action = ActionChains(driver)
+    # تحريك الماوس إلى الإحداثيات المحددة
+    action.move_by_offset(x, y).perform()
+    time.sleep(1)  # الانتظار قليلاً للتأكد من أن الإحداثيات تم تحديدها
+    save_screenshot(f"{step_name}_clicked_at_{x}_{y}")
+
 # حل Captcha باستخدام API
 def solve_captcha(captcha_image_url):
     try:
@@ -64,6 +73,11 @@ def solve_captcha(captcha_image_url):
     except Exception as e:
         print(f"حدث خطأ أثناء حل Captcha: {e}")
         return None
+
+# النقر باستخدام إحداثيات معينة
+def click_at_position(x, y):
+    action = ActionChains(driver)
+    action.move_by_offset(x, y).click().perform()
 
 # إنشاء حساب
 def create_account():
