@@ -9,6 +9,7 @@ import time
 import csv
 from webdriver_manager.firefox import GeckoDriverManager
 import requests
+import os
 
 # إعداد البيانات الوهمية
 fake = Faker()
@@ -37,6 +38,13 @@ def get_next_account_number():
 def save_account_number(account_number):
     with open("last_account_number.txt", "w") as file:
         file.write(str(account_number))
+
+# حفظ لقطات الشاشة
+def save_screenshot(step_name):
+    if not os.path.exists("screenshots"):
+        os.makedirs("screenshots")
+    driver.save_screenshot(f"screenshots/{step_name}.png")
+    print(f"تم حفظ لقطة الشاشة: {step_name}.png")
 
 # حل Captcha باستخدام API
 def solve_captcha(captcha_image_url):
@@ -69,6 +77,7 @@ def create_account():
         # فتح صفحة التسجيل
         driver.get("https://ar.secure.imvu.com/welcome/ftux/account/")
         time.sleep(5)
+        save_screenshot("page_loaded")
 
         # تعبئة الحقول
         driver.find_element(By.CLASS_NAME, "signup_displayname_input").send_keys(username)
@@ -85,6 +94,7 @@ def create_account():
         driver.execute_script("arguments[0].scrollIntoView(true);", submit_button)
         time.sleep(1)
         driver.execute_script("arguments[0].click();", submit_button)
+        save_screenshot("after_submit")
 
         # الضغط على مربع Captcha إذا كان موجودًا
         try:
@@ -93,6 +103,7 @@ def create_account():
                 EC.element_to_be_clickable((By.CSS_SELECTOR, ".recaptcha-checkbox-border"))
             )
             captcha_checkbox.click()
+            save_screenshot("captcha_clicked")
             print("تم الضغط على مربع Captcha.")
         except:
             print("لم يتم العثور على مربع Captcha، المتابعة...")
@@ -103,6 +114,7 @@ def create_account():
             EC.presence_of_element_located((By.XPATH, "//img[contains(@class, 'captcha-image')]"))
         )
         captcha_url = captcha_image.get_attribute("src")
+        save_screenshot("captcha_loaded")
 
         # حل Captcha
         captcha_solution = solve_captcha(captcha_url)
@@ -115,6 +127,7 @@ def create_account():
 
             # انتظار التأكيد
             time.sleep(5)
+            save_screenshot("account_created")
             print(f"تم إنشاء الحساب بنجاح: {username}, {email}")
 
             # حفظ الرقم الأخير
@@ -128,8 +141,7 @@ def create_account():
             print("فشل حل Captcha.")
     except Exception as e:
         print(f"حدث خطأ أثناء إنشاء الحساب: {e}")
-        driver.save_screenshot("error_screenshot.png")
-        print("تم حفظ لقطة الشاشة باسم error_screenshot.png.")
+        save_screenshot("error")
 
 # تشغيل الكود
 create_account()
