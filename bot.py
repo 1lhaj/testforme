@@ -96,47 +96,57 @@ def create_account():
         driver.execute_script("arguments[0].click();", submit_button)
         save_screenshot("after_submit")
 
-        # انتظار ظهور مربع Captcha بعد الضغط على Create Account
+        # الانتظار لبضع ثوانٍ ثم التحقق من المربع
         print("الانتظار حتى يظهر مربع Captcha...")
-        captcha_checkbox = WebDriverWait(driver, 20).until(
-            EC.element_to_be_clickable((By.CLASS_NAME, "recaptcha-checkbox-border"))
-        )
-        time.sleep(2)  # الانتظار لبضع ثوانٍ لضمان ظهور المربع
-        captcha_checkbox.click()  # الضغط على المربع
-        save_screenshot("captcha_clicked")
-        print("تم الضغط على مربع Captcha.")
+        try:
+            # الانتظار حتى يصبح المربع قابلاً للنقر
+            captcha_checkbox = WebDriverWait(driver, 30).until(
+                EC.element_to_be_clickable((By.ID, "recaptcha-anchor"))
+            )
+            time.sleep(2)  # الانتظار لبضع ثوانٍ لضمان ظهور المربع
+            captcha_checkbox.click()  # الضغط على المربع
+            save_screenshot("captcha_clicked")
+            print("تم الضغط على مربع Captcha.")
+        except Exception as e:
+            print(f"لم يتم العثور على مربع Captcha: {e}")
+            save_screenshot("captcha_not_found")
 
         # انتظار ظهور صورة Captcha
         print("الانتظار حتى تظهر Captcha...")
-        captcha_image = WebDriverWait(driver, 30).until(
-            EC.presence_of_element_located((By.XPATH, "//img[contains(@class, 'captcha-image')]"))
-        )
-        captcha_url = captcha_image.get_attribute("src")
-        save_screenshot("captcha_loaded")
+        try:
+            captcha_image = WebDriverWait(driver, 30).until(
+                EC.presence_of_element_located((By.XPATH, "//img[contains(@class, 'captcha-image')]"))
+            )
+            captcha_url = captcha_image.get_attribute("src")
+            save_screenshot("captcha_loaded")
 
-        # حل Captcha
-        captcha_solution = solve_captcha(captcha_url)
-        if captcha_solution:
-            print(f"حل Captcha: {captcha_solution}")
-            driver.find_element(By.ID, "captcha_input").send_keys(captcha_solution)
+            # حل Captcha
+            captcha_solution = solve_captcha(captcha_url)
+            if captcha_solution:
+                print(f"حل Captcha: {captcha_solution}")
+                driver.find_element(By.ID, "captcha_input").send_keys(captcha_solution)
 
-            # إعادة الضغط على زر "Create Account" بعد إدخال Captcha
-            driver.execute_script("arguments[0].click();", submit_button)
+                # إعادة الضغط على زر "Create Account" بعد إدخال Captcha
+                driver.execute_script("arguments[0].click();", submit_button)
 
-            # انتظار التأكيد
-            time.sleep(5)
-            save_screenshot("account_created")
-            print(f"تم إنشاء الحساب بنجاح: {username}, {email}")
+                # انتظار التأكيد
+                time.sleep(5)
+                save_screenshot("account_created")
+                print(f"تم إنشاء الحساب بنجاح: {username}, {email}")
 
-            # حفظ الرقم الأخير
-            save_account_number(account_number)
+                # حفظ الرقم الأخير
+                save_account_number(account_number)
 
-            # حفظ البيانات في CSV
-            with open("accounts.csv", "a", newline="") as file:
-                writer = csv.writer(file)
-                writer.writerow([username, email, password, birthdate])
-        else:
-            print("فشل حل Captcha.")
+                # حفظ البيانات في CSV
+                with open("accounts.csv", "a", newline="") as file:
+                    writer = csv.writer(file)
+                    writer.writerow([username, email, password, birthdate])
+            else:
+                print("فشل حل Captcha.")
+        except Exception as e:
+            print(f"حدث خطأ أثناء حل Captcha: {e}")
+            save_screenshot("error_solving_captcha")
+
     except Exception as e:
         print(f"حدث خطأ أثناء إنشاء الحساب: {e}")
         save_screenshot("error")
