@@ -88,6 +88,9 @@ def solve_captcha(captcha_image_url):
     return result.get('solution', '')
 
 # إنشاء حساب
+from selenium.webdriver.support import expected_conditions as EC
+
+# تعديل في دالة إنشاء الحساب لإضافة انتظار مرن
 def create_account():
     try:
         # استرجاع الرقم التالي وإنشاء الاسم والإيميل
@@ -103,31 +106,67 @@ def create_account():
         save_screenshot("page_loaded")
 
         # تعبئة الحقول
-        username_field = driver.find_element(By.CLASS_NAME, "signup_displayname_input")
-        username_field.send_keys(username)
-        save_click_location_screenshot(username_field, "username_filled")
+        try:
+            username_field = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.CLASS_NAME, "signup_displayname_input"))
+            )
+            username_field.send_keys(username)
+            save_click_location_screenshot(username_field, "username_filled")
+        except Exception as e:
+            print(f"خطأ أثناء العثور على حقل اسم المستخدم: {e}")
+            save_screenshot("username_field_error")
 
-        email_field = driver.find_element(By.NAME, "signup_email")
-        email_field.send_keys(email)
-        save_click_location_screenshot(email_field, "email_filled")
+        try:
+            email_field = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.NAME, "signup_email"))
+            )
+            email_field.send_keys(email)
+            save_click_location_screenshot(email_field, "email_filled")
+        except Exception as e:
+            print(f"خطأ أثناء العثور على حقل البريد الإلكتروني: {e}")
+            save_screenshot("email_field_error")
 
-        password_field = driver.find_element(By.NAME, "signup_password")
-        password_field.send_keys(password)
-        save_click_location_screenshot(password_field, "password_filled")
+        try:
+            password_field = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.NAME, "signup_password"))
+            )
+            password_field.send_keys(password)
+            save_click_location_screenshot(password_field, "password_filled")
+        except Exception as e:
+            print(f"خطأ أثناء العثور على حقل كلمة المرور: {e}")
+            save_screenshot("password_field_error")
 
-        confirm_password_field = driver.find_element(By.NAME, "confirm_password")
-        confirm_password_field.send_keys(password)
-        save_click_location_screenshot(confirm_password_field, "confirm_password_filled")
+        try:
+            confirm_password_field = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.NAME, "confirm_password"))
+            )
+            confirm_password_field.send_keys(password)
+            save_click_location_screenshot(confirm_password_field, "confirm_password_filled")
+        except Exception as e:
+            print(f"خطأ أثناء العثور على حقل تأكيد كلمة المرور: {e}")
+            save_screenshot("confirm_password_field_error")
 
         # إدخال تاريخ الميلاد
-        date_picker = driver.find_element(By.XPATH, "//input[@class='date-picker-input']")
-        date_picker.send_keys(birthdate)
-        save_click_location_screenshot(date_picker, "birthdate_filled")
+        try:
+            date_picker = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, "//input[@class='date-picker-input']"))
+            )
+            date_picker.send_keys(birthdate)
+            save_click_location_screenshot(date_picker, "birthdate_filled")
+        except Exception as e:
+            print(f"خطأ أثناء العثور على حقل تاريخ الميلاد: {e}")
+            save_screenshot("birthdate_field_error")
 
         # الضغط على زر "Create Account"
-        submit_button = driver.find_element(By.ID, "registration-submit")
-        submit_button.click()
-        save_click_location_screenshot(submit_button, "submit_clicked")
+        try:
+            submit_button = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.ID, "registration-submit"))
+            )
+            submit_button.click()
+            save_click_location_screenshot(submit_button, "submit_clicked")
+        except Exception as e:
+            print(f"خطأ أثناء العثور على زر الإرسال: {e}")
+            save_screenshot("submit_button_error")
 
         # الانتظار حتى يظهر مربع Captcha
         print("الانتظار حتى يظهر مربع Captcha...")
