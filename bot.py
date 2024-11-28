@@ -51,7 +51,7 @@ screenshot_counter = 1
 # حفظ لقطات الشاشة
 def save_screenshot(step_name):
     global screenshot_counter
-    screenshot_path = f"screenshots/{screenshot_counter}_{step_name}.png"
+    screenshot_path = f"screenshots/{screenshot_counter:04d}_{step_name}.png"
     driver.save_screenshot(screenshot_path)
     screenshot_counter += 1
     print(f"تم حفظ لقطة الشاشة: {screenshot_path}")
@@ -65,7 +65,7 @@ def save_click_location_screenshot(element, step_name):
     y = int(location["y"] + size["height"] / 2)
 
     # التقاط لقطة الشاشة
-    screenshot_path = f"screenshots/{screenshot_counter}_{step_name}.png"
+    screenshot_path = f"screenshots/{screenshot_counter:04d}_{step_name}.png"
     driver.save_screenshot(screenshot_path)
 
     # فتح الصورة ورسم دائرة على مكان الضغط
@@ -76,25 +76,6 @@ def save_click_location_screenshot(element, step_name):
     image.save(screenshot_path)
     screenshot_counter += 1
     print(f"تم حفظ لقطة الشاشة مع تحديد الضغط: {screenshot_path}")
-
-# حل Captcha باستخدام API
-def solve_captcha(captcha_image_url):
-    try:
-        print(f"جاري محاولة حل Captcha: {captcha_image_url}")
-        params = {
-            'url': captcha_image_url,
-            'apikey': CAPTCHA_API_KEY,
-        }
-        response = requests.get(CAPTCHA_API_URL, params=params)
-        if response.status_code == 200:
-            result = response.json()
-            return result.get("text", "")
-        else:
-            print(f"خطأ في حل Captcha: {response.status_code}")
-            return None
-    except Exception as e:
-        print(f"حدث خطأ أثناء حل Captcha: {e}")
-        return None
 
 # إنشاء حساب
 def create_account():
@@ -138,7 +119,7 @@ def create_account():
         submit_button.click()
         save_click_location_screenshot(submit_button, "submit_clicked")
 
-        # انتظار مربع Captcha
+        # الانتظار حتى يظهر مربع Captcha
         print("الانتظار حتى يظهر مربع Captcha...")
         try:
             captcha_checkbox = WebDriverWait(driver, 30).until(
