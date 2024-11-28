@@ -122,16 +122,17 @@ def create_account():
                 EC.frame_to_be_available_and_switch_to_it((By.XPATH, "//iframe[contains(@title, 'reCAPTCHA')]"))
             )
             print("تم العثور على إطار الكابتشا.")
-
-            # العثور على مربع الكابتشا
-            captcha_checkbox = WebDriverWait(driver, 30).until(
+            
+            # التعامل مع عناصر الكابتشا المحجوبة
+            WebDriverWait(driver, 20).until(
                 EC.element_to_be_clickable((By.CLASS_NAME, "recaptcha-checkbox-checkmark"))
             )
 
-            # استخدام ActionChains للتأكد من النقر بشكل صحيح
-            actions = ActionChains(driver)
-            actions.move_to_element(captcha_checkbox).click().perform()
+            # التعامل مع عناصر مغطاة
+            captcha_checkbox = driver.find_element(By.CLASS_NAME, "recaptcha-checkbox-checkmark")
+            ActionChains(driver).move_to_element(captcha_checkbox).click().perform()
             save_click_location_screenshot(captcha_checkbox, "captcha_clicked")
+            
         except Exception as e:
             print(f"لم يتم العثور على مربع Captcha: {e}")
             save_screenshot("captcha_not_found")
