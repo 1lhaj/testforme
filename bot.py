@@ -48,21 +48,13 @@ def save_screenshot(step_name):
     driver.save_screenshot(f"screenshots/{step_name}.png")
     print(f"تم حفظ لقطة الشاشة: {step_name}.png")
 
-# رسم مستطيل أحمر حول مكان الزر
-def highlight_element(x, y, width, height, step_name):
-    screenshot_path = f"screenshots/{step_name}.png"
-    driver.save_screenshot(screenshot_path)
-    
-    # فتح الصورة باستخدام Pillow
-    image = Image.open(screenshot_path)
-    draw = ImageDraw.Draw(image)
-    
-    # رسم مستطيل أحمر حول الزر
-    draw.rectangle([x, y, x + width, y + height], outline="red", width=5)
-    
-    # حفظ الصورة المعدلة
-    image.save(screenshot_path)
-    print(f"تم حفظ لقطة الشاشة مع تمييز الزر: {step_name}.png")
+# حفظ لقطة شاشة عند الضغط على المكان المحدد
+def save_click_location_screenshot(x, y, step_name):
+    action = ActionChains(driver)
+    # تحريك الماوس إلى الإحداثيات المحددة
+    action.move_by_offset(x, y).perform()
+    time.sleep(1)  # الانتظار قليلاً للتأكد من أن الإحداثيات تم تحديدها
+    save_screenshot(f"{step_name}_clicked_at_{x}_{y}")
 
 # حل Captcha باستخدام API
 def solve_captcha(captcha_image_url):
@@ -82,6 +74,11 @@ def solve_captcha(captcha_image_url):
     except Exception as e:
         print(f"حدث خطأ أثناء حل Captcha: {e}")
         return None
+
+# النقر باستخدام إحداثيات معينة
+def click_at_position(x, y):
+    action = ActionChains(driver)
+    action.move_by_offset(x, y).click().perform()
 
 # إنشاء حساب
 def create_account():
@@ -138,11 +135,6 @@ def create_account():
             )
             captcha_url = captcha_image.get_attribute("src")
             save_screenshot("captcha_loaded")
-
-            # تحديد مكان الزر الذي يفتح صفحة Captcha
-            captcha_location = captcha_image.location
-            captcha_size = captcha_image.size
-            highlight_element(captcha_location['x'], captcha_location['y'], captcha_size['width'], captcha_size['height'], "captcha_location_highlighted")
 
             # حل Captcha
             captcha_solution = solve_captcha(captcha_url)
