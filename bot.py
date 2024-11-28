@@ -7,11 +7,10 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from faker import Faker
 import time
-import csv
-from webdriver_manager.firefox import GeckoDriverManager
-import requests
 import os
+import requests
 from PIL import Image, ImageDraw
+from webdriver_manager.firefox import GeckoDriverManager
 
 # إعداد البيانات الوهمية
 fake = Faker()
@@ -88,9 +87,6 @@ def solve_captcha(captcha_image_url):
     return result.get('solution', '')
 
 # إنشاء حساب
-from selenium.webdriver.support import expected_conditions as EC
-
-# تعديل في دالة إنشاء الحساب لإضافة انتظار مرن
 def create_account():
     try:
         # استرجاع الرقم التالي وإنشاء الاسم والإيميل
@@ -170,8 +166,7 @@ def create_account():
 
         # الانتظار حتى يظهر مربع Captcha
         print("الانتظار حتى يظهر مربع Captcha...")
-       try:
-            print("الانتظار حتى يظهر مربع Captcha...")
+        try:
             captcha_checkbox = WebDriverWait(driver, 90).until(
                 EC.presence_of_element_located((By.CSS_SELECTOR, "div.recaptcha-checkbox-checkmark"))
             )
