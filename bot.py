@@ -77,6 +77,16 @@ def save_click_location_screenshot(element, step_name):
     screenshot_counter += 1
     print(f"تم حفظ لقطة الشاشة مع تحديد الضغط: {screenshot_path}")
 
+# دالة لحل الكابتشا باستخدام API
+def solve_captcha(captcha_image_url):
+    # إرسال طلب لحل الكابتشا باستخدام API
+    response = requests.post(CAPTCHA_API_URL, data={
+        'apikey': CAPTCHA_API_KEY,
+        'url': captcha_image_url
+    })
+    result = response.json()
+    return result.get('solution', '')
+
 # إنشاء حساب
 def create_account():
     try:
@@ -89,11 +99,7 @@ def create_account():
 
         # فتح صفحة التسجيل
         driver.get("https://ar.secure.imvu.com/welcome/ftux/account/")
-
-        # الانتظار حتى يتم تحميل الحقول
-        WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located((By.CLASS_NAME, "signup_displayname_input"))
-        )
+        time.sleep(5)
         save_screenshot("page_loaded")
 
         # تعبئة الحقول
@@ -126,7 +132,7 @@ def create_account():
         # الانتظار حتى يظهر مربع Captcha
         print("الانتظار حتى يظهر مربع Captcha...")
         try:
-            captcha_checkbox = WebDriverWait(driver, 30).until(
+            captcha_checkbox = WebDriverWait(driver, 60).until(
                 EC.presence_of_element_located((By.CLASS_NAME, "recaptcha-checkbox-checkmark"))
             )
             time.sleep(2)  # الانتظار قليلاً
@@ -143,7 +149,7 @@ def create_account():
             captcha_input.send_keys(captcha_solution)
 
         except Exception as e:
-            print(f"لم يتم العثور على مربع Captcha: {e}")
+            print(f"لم يتم العثور على مربع Captcha أو حدث خطأ: {e}")
             save_screenshot("captcha_not_found")
 
         # حفظ البيانات
@@ -152,16 +158,6 @@ def create_account():
     except Exception as e:
         print(f"حدث خطأ أثناء إنشاء الحساب: {e}")
         save_screenshot("error")
-
-# دالة لحل الكابتشا باستخدام API
-def solve_captcha(captcha_image_url):
-    # تنفيذ الحل باستخدام API، مثل ZenRows أو أي API آخر
-    response = requests.post(CAPTCHA_API_URL, data={
-        "api_key": CAPTCHA_API_KEY,
-        "captcha_image_url": captcha_image_url
-    })
-    captcha_response = response.json()
-    return captcha_response.get("solution", "")
 
 # تشغيل الكود
 create_account()
