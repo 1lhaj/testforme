@@ -127,6 +127,9 @@ def create_account():
             captcha_checkbox = WebDriverWait(driver, 30).until(
                 EC.element_to_be_clickable((By.CLASS_NAME, "recaptcha-checkbox-checkmark"))
             )
+
+            # تحريك العنصر إلى الجزء المرئي من الصفحة
+            driver.execute_script("arguments[0].scrollIntoView(true);", captcha_checkbox)
             time.sleep(2)  # الانتظار قليلاً
             captcha_checkbox.click()
             save_click_location_screenshot(captcha_checkbox, "captcha_clicked")
