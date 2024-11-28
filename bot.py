@@ -1,16 +1,15 @@
 from selenium import webdriver
 from selenium.webdriver.firefox.service import Service
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from faker import Faker
 import time
-import csv
-from webdriver_manager.firefox import GeckoDriverManager
 import os
+import requests
 from PIL import Image, ImageDraw
+from webdriver_manager.firefox import GeckoDriverManager
 
 # إعداد البيانات الوهمية
 fake = Faker()
@@ -22,6 +21,10 @@ options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
 service = Service(GeckoDriverManager().install())
 driver = webdriver.Firefox(service=service, options=options)
+
+# بيانات API الخاصة بحل Captcha
+CAPTCHA_API_KEY = "a67d3ce22ef5749d70ee34da412c5f32d998462a"
+CAPTCHA_API_URL = "https://api.zenrows.com/v1/"
 
 # استرجاع الرقم التالي للحساب
 def get_next_account_number():
@@ -72,6 +75,17 @@ def save_click_location_screenshot(element, step_name):
     screenshot_counter += 1
     print(f"تم حفظ لقطة الشاشة مع تحديد الضغط: {screenshot_path}")
 
+# إرسال الكابتشا إلى API لحلها
+def solve_captcha(captcha_image_url):
+    payload = {
+        'key': CAPTCHA_API_KEY,
+        'action': 'get', 
+        'body': captcha_image_url
+    }
+    response = requests.post(CAPTCHA_API_URL, data=payload)
+    result = response.json()
+    return result.get("solution", "")
+
 # إنشاء حساب
 def create_account():
     try:
@@ -117,22 +131,22 @@ def create_account():
         # الانتظار حتى يظهر مربع Captcha
         print("الانتظار حتى يظهر مربع Captcha...")
         try:
-            # الانتظار حتى يظهر iframe الخاص بالكابتشا
-            WebDriverWait(driver, 10).until(
-                EC.frame_to_be_available_and_switch_to_it((By.XPATH, "//iframe[contains(@title, 'reCAPTCHA')]"))
+            captcha_checkbox = WebDriverWait(driver, 30).until(
+                EC.presence_of_element_located((By.CLASS_NAME, "recaptcha-checkbox-checkmark"))
             )
-            print("تم العثور على إطار الكابتشا.")
-            
-            # التعامل مع عناصر الكابتشا المحجوبة
-            WebDriverWait(driver, 20).until(
-                EC.element_to_be_clickable((By.CLASS_NAME, "recaptcha-checkbox-checkmark"))
-            )
-
-            # التعامل مع عناصر مغطاة
-            captcha_checkbox = driver.find_element(By.CLASS_NAME, "recaptcha-checkbox-checkmark")
-            ActionChains(driver).move_to_element(captcha_checkbox).click().perform()
+            time.sleep(2)  # الانتظار قليلاً
+            captcha_checkbox.click()
             save_click_location_screenshot(captcha_checkbox, "captcha_clicked")
-            
+
+            # استرجاع رابط الكابتشا (افتراضيًا، إذا كان هناك رابط صورة)
+            captcha_image_url = driver.find_element(By.CSS_SELECTOR, "img[alt='captcha']").get_attribute("src")
+            captcha_solution = solve_captcha(captcha_image_url)
+            print(f"تم حل الكابتشا: {captcha_solution}")
+
+            # إدخال الحل في النموذج (إن وجد)
+            captcha_input = driver.find_element(By.ID, "captcha_solution_input")
+            captcha_input.send_keys(captcha_solution)
+
         except Exception as e:
             print(f"لم يتم العثور على مربع Captcha: {e}")
             save_screenshot("captcha_not_found")
