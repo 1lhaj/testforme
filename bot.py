@@ -167,24 +167,32 @@ def create_account():
         # الانتظار حتى يظهر مربع Captcha
         print("الانتظار حتى يظهر مربع Captcha...")
         try:
-            # الانتظار حتى يظهر العنصر الذي يحتوي على مربع الكابتشا
-            captcha_checkbox = WebDriverWait(driver, 90).until(
-                EC.presence_of_element_located((By.CSS_SELECTOR, "div.recaptcha-checkbox-checkmark"))
+            # الانتظار حتى يظهر العنصر الذي يحتوي على مربع الكابتشا داخل الـ iframe
+            iframe = WebDriverWait(driver, 30).until(
+                EC.presence_of_element_located((By.NAME, "a-6dardm6osdhq"))
             )
+            # التبديل إلى الإطار
+            driver.switch_to.frame(iframe)
 
-            # الانتظار قليلاً ثم الضغط على مربع الكابتشا
-            time.sleep(2)
+            # الانتظار حتى يظهر مربع الكابتشا
+            captcha_checkbox = WebDriverWait(driver, 30).until(
+                EC.presence_of_element_located((By.CSS_SELECTOR, "div.recaptcha-checkbox"))
+            )
+            # الضغط على مربع الكابتشا
             captcha_checkbox.click()
             save_click_location_screenshot(captcha_checkbox, "captcha_clicked")
 
-            # استرجاع رابط الكابتشا (افتراضيًا، إذا كان هناك رابط صورة)
+            # استرجاع رابط صورة الكابتشا
             captcha_image_url = driver.find_element(By.CSS_SELECTOR, "img[alt='captcha']").get_attribute("src")
             captcha_solution = solve_captcha(captcha_image_url)
             print(f"تم حل الكابتشا: {captcha_solution}")
 
-            # إدخال الحل في النموذج (إن وجد)
+            # إدخال الحل في النموذج
             captcha_input = driver.find_element(By.ID, "captcha_solution_input")
             captcha_input.send_keys(captcha_solution)
+
+            # العودة إلى الصفحة الرئيسية بعد التفاعل مع الكابتشا
+            driver.switch_to.default_content()
 
         except Exception as e:
             print(f"لم يتم العثور على مربع Captcha أو حدث خطأ: {e}")
