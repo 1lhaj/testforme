@@ -128,10 +128,9 @@ def create_account():
                 EC.element_to_be_clickable((By.CLASS_NAME, "recaptcha-checkbox-checkmark"))
             )
 
-            # تحريك العنصر إلى الجزء المرئي من الصفحة
-            driver.execute_script("arguments[0].scrollIntoView(true);", captcha_checkbox)
-            time.sleep(2)  # الانتظار قليلاً
-            captcha_checkbox.click()
+            # استخدام ActionChains للتأكد من النقر بشكل صحيح
+            actions = ActionChains(driver)
+            actions.move_to_element(captcha_checkbox).click().perform()
             save_click_location_screenshot(captcha_checkbox, "captcha_clicked")
         except Exception as e:
             print(f"لم يتم العثور على مربع Captcha: {e}")
