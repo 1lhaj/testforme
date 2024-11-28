@@ -170,26 +170,27 @@ def create_account():
 
         # الانتظار حتى يظهر مربع Captcha
         print("الانتظار حتى يظهر مربع Captcha...")
-        try:
-            captcha_checkbox = WebDriverWait(driver, 90).until(
-                EC.presence_of_element_located((By.CLASS_NAME, "recaptcha-checkbox-checkmark"))
-            )
-            time.sleep(2)  # الانتظار قليلاً
-            captcha_checkbox.click()
-            save_click_location_screenshot(captcha_checkbox, "captcha_clicked")
+try:
+    print("الانتظار حتى يظهر مربع Captcha...")
+    captcha_checkbox = WebDriverWait(driver, 90).until(
+        EC.presence_of_element_located((By.CSS_SELECTOR, "div.recaptcha-checkbox-checkmark"))
+    )
+    time.sleep(2)  # الانتظار قليلاً
+    captcha_checkbox.click()
+    save_click_location_screenshot(captcha_checkbox, "captcha_clicked")
 
-            # استرجاع رابط الكابتشا (افتراضيًا، إذا كان هناك رابط صورة)
-            captcha_image_url = driver.find_element(By.CSS_SELECTOR, "img[alt='captcha']").get_attribute("src")
-            captcha_solution = solve_captcha(captcha_image_url)
-            print(f"تم حل الكابتشا: {captcha_solution}")
+    # استرجاع رابط الكابتشا (افتراضيًا، إذا كان هناك رابط صورة)
+    captcha_image_url = driver.find_element(By.CSS_SELECTOR, "img[alt='captcha']").get_attribute("src")
+    captcha_solution = solve_captcha(captcha_image_url)
+    print(f"تم حل الكابتشا: {captcha_solution}")
 
-            # إدخال الحل في النموذج (إن وجد)
-            captcha_input = driver.find_element(By.ID, "captcha_solution_input")
-            captcha_input.send_keys(captcha_solution)
+    # إدخال الحل في النموذج (إن وجد)
+    captcha_input = driver.find_element(By.ID, "captcha_solution_input")
+    captcha_input.send_keys(captcha_solution)
 
-        except Exception as e:
-            print(f"لم يتم العثور على مربع Captcha أو حدث خطأ: {e}")
-            save_screenshot("captcha_not_found")
+except Exception as e:
+    print(f"لم يتم العثور على مربع Captcha أو حدث خطأ: {e}")
+    save_screenshot("captcha_not_found")
 
         # حفظ البيانات
         save_account_number(account_number)
