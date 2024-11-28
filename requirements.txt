@@ -1,4 +1,5 @@
 selenium
 faker
-discord.py
-pandas
+webdriver-manager
+requests
+pillow
