@@ -9,8 +9,8 @@ from faker import Faker
 import time
 import csv
 from webdriver_manager.firefox import GeckoDriverManager
-import requests
 import os
+from PIL import Image, ImageDraw
 
 # إعداد البيانات الوهمية
 fake = Faker()
@@ -22,10 +22,6 @@ options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
 service = Service(GeckoDriverManager().install())
 driver = webdriver.Firefox(service=service, options=options)
-
-# بيانات API الخاصة بحل Captcha
-CAPTCHA_API_KEY = "a67d3ce22ef5749d70ee34da412c5f32d998462a"
-CAPTCHA_API_URL = "https://api.zenrows.com/v1/"
 
 # استرجاع الرقم التالي للحساب
 def get_next_account_number():
@@ -40,66 +36,41 @@ def save_account_number(account_number):
     with open("last_account_number.txt", "w") as file:
         file.write(str(account_number))
 
+# إعداد مجلد لحفظ لقطات الشاشة
+if not os.path.exists("screenshots"):
+    os.makedirs("screenshots")
+
+# عداد الصور
+screenshot_counter = 1
+
 # حفظ لقطات الشاشة
 def save_screenshot(step_name):
-    if not os.path.exists("screenshots"):
-        os.makedirs("screenshots")
-    driver.save_screenshot(f"screenshots/{step_name}.png")
-    print(f"تم حفظ لقطة الشاشة: {step_name}.png")
+    global screenshot_counter
+    screenshot_path = f"screenshots/{screenshot_counter:04d}_{step_name}.png"
+    driver.save_screenshot(screenshot_path)
+    screenshot_counter += 1
+    print(f"تم حفظ لقطة الشاشة: {screenshot_path}")
 
 # حفظ لقطة شاشة عند الضغط على المكان المحدد
-def save_click_location_screenshot(x, y, step_name):
-    action = ActionChains(driver)
-    action.move_by_offset(x, y).perform()
-    time.sleep(1)  # الانتظار قليلاً للتأكد من أن الإحداثيات تم تحديدها
-    save_screenshot(f"{step_name}_clicked_at_{x}_{y}")
+def save_click_location_screenshot(element, step_name):
+    global screenshot_counter
+    location = element.location
+    size = element.size
+    x = int(location["x"] + size["width"] / 2)
+    y = int(location["y"] + size["height"] / 2)
 
-# حل Captcha باستخدام API
-def solve_captcha(captcha_image_url):
-    try:
-        print(f"جاري محاولة حل Captcha: {captcha_image_url}")
-        params = {
-            'url': captcha_image_url,
-            'apikey': CAPTCHA_API_KEY,
-        }
-        response = requests.get(CAPTCHA_API_URL, params=params)
-        if response.status_code == 200:
-            result = response.json()
-            return result.get("text", "")
-        else:
-            print(f"خطأ في حل Captcha: {response.status_code}")
-            return None
-    except Exception as e:
-        print(f"حدث خطأ أثناء حل Captcha: {e}")
-        return None
+    # التقاط لقطة الشاشة
+    screenshot_path = f"screenshots/{screenshot_counter:04d}_{step_name}.png"
+    driver.save_screenshot(screenshot_path)
 
-# النقر باستخدام إحداثيات معينة
-def click_at_position(x, y):
-    action = ActionChains(driver)
-    action.move_by_offset(x, y).click().perform()
-
-# التعامل مع الكابتشا
-def handle_captcha():
-    try:
-        # البحث عن الإطار (iframe) الذي يحتوي على الكابتشا
-        WebDriverWait(driver, 10).until(
-            EC.frame_to_be_available_and_switch_to_it((By.XPATH, "//iframe[contains(@title, 'reCAPTCHA')]"))
-        )
-        print("تم التبديل إلى إطار الكابتشا.")
-
-        # العثور على مربع الكابتشا
-        captcha_checkbox = WebDriverWait(driver, 30).until(
-            EC.element_to_be_clickable((By.CLASS_NAME, "recaptcha-checkbox-checkmark"))
-        )
-        captcha_checkbox.click()
-        print("تم النقر على مربع الكابتشا.")
-        save_screenshot("captcha_clicked")
-
-        # الرجوع إلى الإطار الأساسي
-        driver.switch_to.default_content()
-    except Exception as e:
-        print(f"حدث خطأ أثناء التعامل مع الكابتشا: {e}")
-        save_screenshot("captcha_error")
+    # فتح الصورة ورسم دائرة على مكان الضغط
+    image = Image.open(screenshot_path)
+    draw = ImageDraw.Draw(image)
+    radius = 10
+    draw.ellipse((x - radius, y - radius, x + radius, y + radius), outline="red", width=3)
+    image.save(screenshot_path)
+    screenshot_counter += 1
+    print(f"تم حفظ لقطة الشاشة مع تحديد الضغط: {screenshot_path}")
 
 # إنشاء حساب
 def create_account():
@@ -117,37 +88,54 @@ def create_account():
         save_screenshot("page_loaded")
 
         # تعبئة الحقول
-        driver.find_element(By.CLASS_NAME, "signup_displayname_input").send_keys(username)
-        driver.find_element(By.NAME, "signup_email").send_keys(email)
-        driver.find_element(By.NAME, "signup_password").send_keys(password)
-        driver.find_element(By.NAME, "confirm_password").send_keys(password)
+        username_field = driver.find_element(By.CLASS_NAME, "signup_displayname_input")
+        username_field.send_keys(username)
+        save_click_location_screenshot(username_field, "username_filled")
+
+        email_field = driver.find_element(By.NAME, "signup_email")
+        email_field.send_keys(email)
+        save_click_location_screenshot(email_field, "email_filled")
+
+        password_field = driver.find_element(By.NAME, "signup_password")
+        password_field.send_keys(password)
+        save_click_location_screenshot(password_field, "password_filled")
+
+        confirm_password_field = driver.find_element(By.NAME, "confirm_password")
+        confirm_password_field.send_keys(password)
+        save_click_location_screenshot(confirm_password_field, "confirm_password_filled")
 
         # إدخال تاريخ الميلاد
         date_picker = driver.find_element(By.XPATH, "//input[@class='date-picker-input']")
         date_picker.send_keys(birthdate)
+        save_click_location_screenshot(date_picker, "birthdate_filled")
 
         # الضغط على زر "Create Account"
         submit_button = driver.find_element(By.ID, "registration-submit")
-        driver.execute_script("arguments[0].scrollIntoView(true);", submit_button)
-        time.sleep(1)
-        driver.execute_script("arguments[0].click();", submit_button)
-        save_screenshot("after_submit")
+        submit_button.click()
+        save_click_location_screenshot(submit_button, "submit_clicked")
 
-        # التعامل مع الكابتشا
-        handle_captcha()
+        # الانتظار حتى يظهر مربع Captcha
+        print("الانتظار حتى يظهر مربع Captcha...")
+        try:
+            # الانتظار حتى يظهر iframe الخاص بالكابتشا
+            WebDriverWait(driver, 10).until(
+                EC.frame_to_be_available_and_switch_to_it((By.XPATH, "//iframe[contains(@title, 'reCAPTCHA')]"))
+            )
+            print("تم العثور على إطار الكابتشا.")
 
-        # انتظار تأكيد الحساب
-        time.sleep(5)
-        save_screenshot("account_created")
-        print(f"تم إنشاء الحساب بنجاح: {username}, {email}")
+            # العثور على مربع الكابتشا
+            captcha_checkbox = WebDriverWait(driver, 30).until(
+                EC.element_to_be_clickable((By.CLASS_NAME, "recaptcha-checkbox-checkmark"))
+            )
+            time.sleep(2)  # الانتظار قليلاً
+            captcha_checkbox.click()
+            save_click_location_screenshot(captcha_checkbox, "captcha_clicked")
+        except Exception as e:
+            print(f"لم يتم العثور على مربع Captcha: {e}")
+            save_screenshot("captcha_not_found")
 
-        # حفظ الرقم الأخير
+        # حفظ البيانات
         save_account_number(account_number)
-
-        # حفظ البيانات في CSV
-        with open("accounts.csv", "a", newline="") as file:
-            writer = csv.writer(file)
-            writer.writerow([username, email, password, birthdate])
 
     except Exception as e:
         print(f"حدث خطأ أثناء إنشاء الحساب: {e}")
