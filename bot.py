@@ -171,7 +171,7 @@ def create_account():
         # الانتظار حتى يظهر مربع Captcha
         print("الانتظار حتى يظهر مربع Captcha...")
         try:
-            captcha_checkbox = WebDriverWait(driver, 60).until(
+            captcha_checkbox = WebDriverWait(driver, 90).until(
                 EC.presence_of_element_located((By.CLASS_NAME, "recaptcha-checkbox-checkmark"))
             )
             time.sleep(2)  # الانتظار قليلاً
